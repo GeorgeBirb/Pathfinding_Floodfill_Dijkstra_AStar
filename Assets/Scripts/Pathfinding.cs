@@ -57,19 +57,6 @@ public class Pathfinding : MonoBehaviour
         return path;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     Queue<Tile> Dijkstra(Tile start, Tile goal)
     {
         Dictionary<Tile, Tile> NextTileToGoal = new Dictionary<Tile, Tile>();//Determines for each tile where you need to go to reach the goal. Key=Tile, Value=Direction to Goal
@@ -170,6 +157,46 @@ public class Pathfinding : MonoBehaviour
         return path;
     }
 
+
+    Queue<Tile> QAlgorithm(Tile start, Tile goal)
+    {
+        Dictionary<Tile, Tile> nextTileToGoal = new Dictionary<Tile, Tile>();
+        Queue<Tile> frontier = new Queue<Tile>();
+        List<Tile> visited = new List<Tile>();
+
+        frontier.Enqueue(goal);
+
+        while(frontier.Count > 0)
+        {
+            Tile curTile = frontier.Dequeue();
+
+            foreach(Tile neighbor in _mapGenerator.Neighbors(curTile))
+            {
+                if (visited.Contains(neighbor) == false && frontier.Contains(neighbor) == false)
+                {
+                    if (neighbor._TileType != Tile.TileType.Wall)
+                    {
+                        frontier.Enqueue(neighbor);
+                        nextTileToGoal[neighbor] = curTile;
+                    }
+                }
+            }
+            visited.Add(curTile);
+        }
+
+        if (visited.Contains(start) == false)
+            return null;
+
+        Queue<Tile> path = new Queue<Tile>();
+        Tile curPathTile = start;
+        while(curPathTile != goal)
+        {
+            curPathTile = nextTileToGoal[curPathTile];
+            path.Enqueue(curPathTile);
+        }
+
+        return path;
+    }
     /// <summary>
     /// Finds a path from starttile to endtile
     /// </summary>
@@ -184,7 +211,8 @@ public class Pathfinding : MonoBehaviour
                 return Dijkstra(start, end);
             case Algorithm.AStar:
                 return AStar(start, end);
-
+            case Algorithm.QAlgorithm:
+                return QAlgorithm(start, end);
         }
 
         return null;
@@ -224,7 +252,8 @@ public class Pathfinding : MonoBehaviour
     {
         FloodFill = 0,
         Dijkstra = 1,
-        AStar = 2
+        AStar = 2,
+        QAlgorithm = 3
     }
 
     public Algorithm _currentAlgorithm;
